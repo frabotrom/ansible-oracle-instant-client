@@ -1,0 +1,53 @@
+---
+
+- name: Instalar Microsoft Visual C++ Redistributable
+  import_tasks: install_vc_redist.yml
+
+# - name: Desinstalar versiones anteriores de Oracle Instant Client
+#   import_tasks: uninstall_previous.yml
+
+- name: Crear el directorio de instalación si no existe
+  ansible.builtin.win_file:
+    path: "{{ oracle_client_install_path }}"
+    state: directory
+
+- name: Enviar Oracle Instant Client
+  ansible.windows.win_copy:
+    src: "{{ oracle_client_versions[oracle_client_version_to_install].client }}"
+    dest: "{{ oracle_client_install_path }}oracle_client_{{ oracle_client_version_to_install }}.zip"
+    force: no
+
+- name: Descomprimir Oracle Instant Client
+  ansible.builtin.win_unzip:
+    src: "{{ oracle_client_install_path }}oracle_client_{{ oracle_client_version_to_install }}.zip"
+    dest: "{{ oracle_client_install_path }}"
+    creates: "{{ oracle_client_install_path }}instantclient_{{ oracle_client_version_to_install }}"
+
+- name: Añadir Oracle Instant Client al inicio del PATH
+  ansible.builtin.win_shell: |
+    $newPath = "{{ oracle_client_install_path }}instantclient_{{ oracle_client_version_to_install }};"
+    $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
+    if (-not $currentPath.StartsWith($newPath)) {
+      [Environment]::SetEnvironmentVariable("PATH", $newPath + $currentPath, "Machine")
+    }
+  args:
+    executable: powershell
+
+- name: Verificar la instalación de Oracle Instant Client
+  import_tasks: verify_installation.yml
+
+#SQL
+- name: Enviar SQLPLUS
+  ansible.windows.win_copy:
+    src: "{{ oracle_client_versions[oracle_client_version_to_install].sqlplus }}"
+    dest: "{{ oracle_client_install_path }}sql_{{ oracle_client_version_to_install }}.zip"
+    force: no
+
+- name: Descomprimir SQLPLUS
+  ansible.builtin.win_unzip:
+    src: "{{ oracle_client_install_path }}sql_{{ oracle_client_version_to_install }}.zip"
+    dest: "{{ oracle_client_install_path }}"
+
+
+
+

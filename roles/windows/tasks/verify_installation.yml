@@ -1,0 +1,23 @@
+---
+
+- name: Verificar la existencia del directorio de Oracle Instant Client
+  ansible.builtin.win_stat:
+    path: "{{ oracle_client_install_path }}instantclient_{{ oracle_client_version_to_install }}"
+  register: oracle_client_dir
+
+- name: Fallar si el directorio de Oracle Instant Client no existe
+  ansible.builtin.fail:
+    msg: "La instalación de Oracle Instant Client ha fallado o el directorio no existe."
+  when: not oracle_client_dir.stat.exists
+
+- name: Obtener la variable de entorno PATH actual
+  ansible.builtin.win_command: PowerShell -Command "[Environment]::GetEnvironmentVariable('Path', 'Machine')"
+  register: env_path
+
+- name: Verificar si la ruta de Oracle Instant Client está en PATH
+  ansible.builtin.fail:
+    msg: "La ruta de Oracle Instant Client no se encontró en la variable de entorno PATH."
+  when: "oracle_client_install_path + 'instantclient_' + oracle_client_version_to_install not in env_path.stdout"
+
+
+

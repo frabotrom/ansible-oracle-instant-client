@@ -1,0 +1,13 @@
+---
+
+- name: Copiar Microsoft Visual C++ Redistributable al host Windows
+  ansible.windows.win_copy:
+    src: "{{ role_path }}/files/VC_redist.x64.exe"
+    dest: "C:\\Users\\frabotrom\\Downloads\\VC_redist.x64.exe"
+
+
+- name: Instalar Microsoft Visual C++ Redistributable
+  ansible.builtin.win_package:
+    path: "C:\\Users\\frabotrom\\Downloads\\VC_redist.x64.exe"
+    arguments: '/install /quiet /norestart'
+    state: present

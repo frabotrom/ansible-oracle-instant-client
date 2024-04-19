@@ -1,0 +1,13 @@
+---
+
+- name: Buscar versiones anteriores de Oracle Instant Client
+  ansible.builtin.win_find:
+    paths: "{{ oracle_client_install_path }}"
+    patterns: "instantclient*"
+  register: found_dirs
+
+- name: Eliminar versiones anteriores de Oracle Instant Client
+  ansible.builtin.win_file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ found_dirs.files }}"

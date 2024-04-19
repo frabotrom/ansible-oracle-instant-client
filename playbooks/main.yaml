@@ -1,0 +1,7 @@
+---
+- name: Instalar Instant Client en Todas las Máquinas
+  hosts: all
+  roles:
+    - common
+    - { role: windows, when: "inventory_hostname in groups['windows']" }
+    - { role: linux, when: "inventory_hostname in groups['linux']" }

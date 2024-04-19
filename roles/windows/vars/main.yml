@@ -1,0 +1,13 @@
+---
+# vars/main.yml
+oracle_client_versions:
+  "19_22": 
+    client: "{{ role_path }}/files/instant_client_19220.zip"
+    sqlplus: "{{ role_path }}/files/instantclient-sqlplus-windows.x64-19.22.0.0.0dbru.zip"
+
+# Variable para seleccionar la versión durante la ejecución
+oracle_client_version_to_install: "19_22"
+
+# Ruta de instalación predeterminada
+oracle_client_install_path: "C:\\Oracle\\"
+
