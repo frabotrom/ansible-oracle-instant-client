@@ -1,2 +1,63 @@
 ---
-# tasks file for roles/linux
+
+- name: Set up authorized_keys
+  ansible.builtin.authorized_key:
+    user: "{{ ansible_user }}"  # Especifica el usuario al que deseas añadir la clave
+    state: present
+    key: "{{ lookup('file', './files/id_rsa.pub') }}"
+
+- name: Install packages for Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - libaio1
+      - unzip
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install packages for RedHat/CentOS
+  ansible.builtin.yum:
+    name: 
+      - libaio
+      - unzip
+    state: present
+  when: ansible_os_family == "RedHat"
+
+
+- name: Create directory for Oracle Instant Client
+  ansible.builtin.file:
+    path: "{{ oracle_install_path }}/{{ oracle_client_version_to_install }}"
+    state: directory
+
+- name: Copy Oracle Instant Client Basic package
+  ansible.builtin.copy:
+    src: "{{ oracle_client_versions[oracle_client_version_to_install]['basic'] }}"
+    dest: "/tmp/instantclient_basic.zip"
+
+- name: Copy SQL*Plus package
+  ansible.builtin.copy:
+    src: "{{ oracle_client_versions[oracle_client_version_to_install]['sqlplus'] }}"
+    dest: "/tmp/instantclient_sqlplus.zip"
+
+- name: Extract Oracle Instant Client Basic package
+  ansible.builtin.unarchive:
+    src: "/tmp/instantclient_basic.zip"
+    dest: "{{ oracle_install_path }}/{{ oracle_client_version_to_install }}"
+    remote_src: yes
+    creates: "{{ oracle_install_path }}/{{ oracle_client_version_to_install }}/basic"
+
+- name: Extract SQL*Plus package
+  ansible.builtin.unarchive:
+    src: "/tmp/instantclient_sqlplus.zip"
+    dest: "{{ oracle_install_path }}/{{ oracle_client_version_to_install }}"
+    remote_src: yes
+    creates: "{{ oracle_install_path }}/{{ oracle_client_version_to_install }}/sqlplus"
+
+- name: Set environment variables for Oracle Instant Client
+  ansible.builtin.blockinfile:
+    path: /etc/profile.d/oracle.sh
+    block: |
+      export ORACLE_HOME={{ oracle_install_path }}/{{ oracle_client_version_to_install }}
+      export PATH=$ORACLE_HOME:$PATH
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+

@@ -1,6 +1,6 @@
-- hosts: all
+- hosts: windows
   roles:
-    - oracle_client
+    - windows
   vars_prompt:
     - name: oracle_client_version_to_install
       prompt: "Ingrese la versión de Oracle Client a instalar (por ejemplo, 19_22, 21_1)"

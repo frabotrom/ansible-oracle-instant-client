@@ -1,0 +1,11 @@
+- hosts: debian
+  become: yes
+  vars_prompt:
+    - name: oracle_client_version
+      prompt: "Ingrese la versión de Oracle Client a instalar (por ejemplo, 19_23)"
+      private: no
+
+  roles:
+    - role: roles/linux
+      vars:
+        oracle_client_version: "{{ oracle_client_version }}"

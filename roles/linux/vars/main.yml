@@ -1,2 +1,8 @@
 ---
-# vars file for roles/linux
+oracle_client_versions:
+  "19_23":
+    basic: "{{ role_path }}/files/roles/linux/files/instantclient-basic-linux.x64-19.23.0.0.0dbru.zip"
+    sqlplus: "{{ role_path }}/files/roles/linux/files/instantclient-sqlplus-linux.x64-19.23.0.0.0dbru.zip"
+
+oracle_client_version_to_install: "19_23"
+oracle_install_path: "/opt/oracle"
