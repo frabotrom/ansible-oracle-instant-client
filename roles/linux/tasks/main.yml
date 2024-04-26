@@ -22,7 +22,6 @@
     state: present
   when: ansible_os_family == "RedHat"
 
-
 - name: Create directory for Oracle Instant Client
   ansible.builtin.file:
     path: "{{ oracle_install_path }}/{{ oracle_client_version_to_install }}"
@@ -60,4 +59,15 @@
       export PATH=$ORACLE_HOME:$PATH
     create: yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+- name: Verify SQL*Plus installation
+  shell: |
+    export LD_LIBRARY_PATH={{ oracle_install_path }}/{{ oracle_client_version_to_install }}/instantclient_{{ oracle_client_version_to_install }}:$LD_LIBRARY_PATH
+    {{ oracle_install_path }}/{{ oracle_client_version_to_install }}/instantclient_{{ oracle_client_version_to_install }}/sqlplus -version
+  register: sqlplus_version
+  ignore_errors: true
+
+- name: Display SQL*Plus version
+  ansible.builtin.debug:
+    var: sqlplus_version.stdout_lines
 
