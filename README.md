@@ -72,126 +72,83 @@ debianhost2.example.com
 ansible_user=user
 ansible_password="password"
 ```
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Configure Linux Hosts
-Establishing SSH Connections from the Control Node to Managed Nodes
+### 4. Configure Managed Hosts
+#### 4.1 Configure Linux Hosts
 
-To manage your Linux hosts using Ansible, it is essential to establish a secure communication channel. SSH (Secure Shell) is the default method used for this purpose. Follow these steps to ensure a smooth setup:
+Log in with your previously created ansible user 
+```bashh
+sudo su - ansible
+```
 
-    Generate SSH Keys (if not already done):
-        On your control node, generate an SSH key pair if you haven't already. Execute:
-
-        bash
-
-    ssh-keygen -t rsa -b 4096
-
-    Press enter through all prompts to use default settings and no passphrase.
+On your control node, generate an SSH key pair if you haven't already.
+```bash
+ssh-keygen -t rsa -b 4096
+```
+Press enter through all prompts to use default settings and no passphrase.
 
 Copy the Public Key to Managed Hosts:
+```bash
+ssh-copy-id user@managed-host-ip
+```
+Replace user with the remote user's username and managed-host-ip with the IP address of the managed host.
 
-    Use ssh-copy-id to transfer your public key to each managed host. This facilitates password-less authentication from the control node.
+Ensure that you can SSH into the managed host without entering a password
+```bash
+ssh user@managed-host-ip
+```
 
-    bash
+Add the managed hosts to your Ansible inventory file with the necessary SSH parameters. Example inventory entry:
 
-    ssh-copy-id user@managed-host-ip
+```inventario.ini
+[debian]
+debianhost1 ansible_host=192.168.1.100 ansible_user=user ansible_ssh_private_key_file=~/.ssh/id_rsa
+```
+Test Ansible Communication
+```bash
+ansible debian -m ping
+```
 
-    Replace user with the remote user's username and managed-host-ip with the IP address of the managed host.
+#### 4.2 Configure Windows Hosts
 
-Verify SSH Connection:
-
-    Ensure that you can SSH into the managed host without entering a password:
-
-    bash
-
-    ssh user@managed-host-ip
-
-    Successful login without a password prompt indicates that the SSH setup is correct.
-
-Configure Ansible Inventory:
-
-    Add the managed hosts to your Ansible inventory file with the necessary SSH parameters. Example inventory entry:
-
-    ini
-
-    [servers]
-    server1 ansible_host=192.168.1.100 ansible_user=user ansible_ssh_private_key_file=~/.ssh/id_rsa
-
-Test Ansible Communication:
-
-    Run a simple Ansible command to check that Ansible can communicate with the managed hosts:
-
-    bash
-
-        ansible all -m ping
-
-        A successful pong response verifies that the setup is correct.
-
-Configure Windows Hosts
 Ensuring Remote Hosts are Configured for HTTPS and WinRM
 
-To manage Windows hosts with Ansible, it's crucial to set up WinRM (Windows Remote Management) and ensure proper HTTPS encryption. Follow these guidelines:
+To manage Windows hosts with Ansible, it's crucial to set up WinRM (Windows Remote Management) and ensure proper HTTPS encryption.
 
-    Enable WinRM:
-        On each Windows host, WinRM must be enabled and configured. Execute this in PowerShell as an administrator:
+On each Windows host, WinRM must be enabled and configured. Execute this in PowerShell as an administrator
+```powershell
+Enable-PSRemoting -Force
+```
 
-        powershell
-
-    Enable-PSRemoting -Force
-
-Configure WinRM for HTTPS:
-
-    Secure WinRM by enabling HTTPS, which requires a valid certificate. If a certificate is not already installed, create a self-signed certificate:
-
-    powershell
-
+Secure WinRM by enabling HTTPS, which requires a valid certificate. If a certificate is not already installed, create a self-signed certificate:
+```powershell
 New-SelfSignedCertificate -DnsName "win-host.example.com" -CertStoreLocation Cert:\LocalMachine\My
+```
 
 Configure WinRM to use this certificate:
 
-powershell
-
-    $cert = Get-Certificate -Thumbprint "THUMBPRINT_HERE" -CertStoreLocation Cert:\LocalMachine\My
+```powershell
+$cert = Get-Certificate -Thumbprint "THUMBPRINT_HERE" -CertStoreLocation Cert:\LocalMachine\My
     winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname="win-host.example.com"; CertificateThumbprint="$cert.Thumbprint"}
+```
+Modify group policies to allow WinRM access, configured via gpedit.msc under:
 
-Set Group Policies:
-
-    Modify group policies to allow WinRM access, configured via gpedit.msc under:
-
-    rust
 
     Computer Configuration -> Administrative Templates -> Windows Components -> Windows Remote Management (WinRM) -> WinRM Service
 
-    Set the policy to allow remote server management through WinRM.
+Set the policy to allow remote server management through WinRM.
 
-Test Connectivity:
+Verify that you can connect from the Ansible control node to the Windows host using the pywinrm Python module
 
-    Verify that you can connect from the Ansible control node to the Windows host using the pywinrm Python module, which Ansible utilizes to communicate over WinRM:
-
-    bash
-
+```bash
 python -m pywinrm -u "user" -p "password" -x "https://win-host.example.com:5986/wsman" "ipconfig"
+```
 
-Successful output indicates that the WinRM setup is correct.
-
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-### x. Configure Linux Hosts
-
-sudo su - ansible
-
-Hacer conexion ssh desde el nodo de control hacia los gestionados
-
-### x. Configure Windows Hosts
-
-Asegurarse de que los hosts remotos tienen un certificado para poder conectarse por https y winrm activo
-
-### 4. Review and Customize Variables
+### 5. Review and Customize Variables
 
 Check the `roles/common/vars/main.yml` and adjust any default values such as paths and version numbers to suit your environment.
 
-### 5. Run the Playbook
+### 6. Run the Playbook
 
 Execute the playbooks by specifying your inventory file and the main playbook files:
 
