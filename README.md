@@ -31,30 +31,51 @@ git clone https://github.com/your-github-username/ansible-oracle-instantclient.g
 cd ansible-oracle-instantclient
 ```
 
-### 2. Configure the Inventory
+### 2. Install Ansible
 
-Modify the `inventory/hosts` file to include the IP addresses, domain names, or aliases for your target hosts under the appropriate groups:
+```bash
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt update
+sudo apt install ansible
+```
 
-```ini
+### 3. Configure the Inventory
+
+Modify the `inventory/inventario.ini` file to include the IP addresses, domain names, or aliases for your target hosts under the appropriate groups:
+
+```inventario.ini
 [windows]
 winhost1.example.com
 winhost2.example.com
 
-[linux]
-linuxhost1.example.com
-linuxhost2.example.com
+[windows:vars]
+ansible_user=user
+ansible_password="password"
+
+[debian]
+debianhost1.example.com
+debianhost2.example.com
+
+[debian:vars]
+ansible_user=user
+ansible_password="password"
 ```
 
-### 3. Review and Customize Variables
+
+### 4. Review and Customize Variables
 
 Check the `roles/common/vars/main.yml` and adjust any default values such as paths and version numbers to suit your environment.
 
-### 4. Run the Playbook
+### 5. Run the Playbook
 
-Execute the playbook by specifying your inventory file and the main playbook file:
+Execute the playbooks by specifying your inventory file and the main playbook files:
 
 ```bash
-ansible-playbook -i inventory/hosts site.yml
+ansible-playbook -i inventory/inventario install_linux.yml
+```
+
+```bash
+ansible-playbook -i inventory/inventario install_windows.yml
 ```
 
 ## Usage
