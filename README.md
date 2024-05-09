@@ -176,6 +176,3 @@ Contributions to this repository are welcome. To contribute:
 
 If you encounter any issues while using these playbooks, please submit an issue on the GitHub issue tracker.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
