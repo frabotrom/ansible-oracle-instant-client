@@ -27,8 +27,8 @@ To get started with these playbooks, follow the steps outlined below:
 Clone this repository to your Ansible control node:
 
 ```bash
-git clone https://github.com/your-github-username/ansible-oracle-instantclient.git
-cd ansible-oracle-instantclient
+git clone https://github.com/your-github-username/ansible-oracle-instant-client.git
+cd ansible-oracle-instant-client
 ```
 
 ### 2. Install Ansible
@@ -47,8 +47,12 @@ sudo apt-get install adduser
 sudo adduser ansible
 ```
 
-```bash
+```bash (Debian Systems)
 sudo usermod -aG sudo ansible
+```
+Or alternatively:
+```bash (RHEL Systems)
+sudo usermod -aG wheel ansible
 ```
 
 ### 3. Configure the Inventory
@@ -128,8 +132,8 @@ New-SelfSignedCertificate -DnsName "win-host.example.com" -CertStoreLocation Cer
 Configure WinRM to use this certificate:
 
 ```powershell
-$cert = Get-Certificate -Thumbprint "THUMBPRINT_HERE" -CertStoreLocation Cert:\LocalMachine\My
-    winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname="win-host.example.com"; CertificateThumbprint="$cert.Thumbprint"}
+$cert = Get-ChildItem -Path cert:\LocalMachine\My\THUMBPRINT_HERE
+    winrm create winrm/config/Listener?Address=*+Transport=HTTPS '@{Hostname="win-host.example.com"; CertificateThumbprint="$cert.Thumbprint"}'
 ```
 Modify group policies to allow WinRM access, configured via gpedit.msc under:
 
