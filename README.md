@@ -27,34 +27,141 @@ To get started with these playbooks, follow the steps outlined below:
 Clone this repository to your Ansible control node:
 
 ```bash
-git clone https://github.com/your-github-username/ansible-oracle-instantclient.git
-cd ansible-oracle-instantclient
+git clone https://github.com/your-github-username/ansible-oracle-instant-client.git
+cd ansible-oracle-instant-client
 ```
 
-### 2. Configure the Inventory
+### 2. Install Ansible
 
-Modify the `inventory/hosts` file to include the IP addresses, domain names, or aliases for your target hosts under the appropriate groups:
+```bash
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt update
+sudo apt install ansible
+```
 
-```ini
+```bash
+sudo apt-get install adduser
+```
+
+```bash
+sudo adduser ansible
+```
+
+```bash (Debian Systems)
+sudo usermod -aG sudo ansible
+```
+Or alternatively:
+```bash (RHEL Systems)
+sudo usermod -aG wheel ansible
+```
+
+### 3. Configure the Inventory
+
+Modify the `inventory/inventario.ini` file to include the IP addresses, domain names, or aliases for your target hosts under the appropriate groups:
+
+```inventario.ini
 [windows]
 winhost1.example.com
 winhost2.example.com
 
-[linux]
-linuxhost1.example.com
-linuxhost2.example.com
+[windows:vars]
+ansible_user=user
+ansible_password="password"
+
+[debian]
+debianhost1.example.com
+debianhost2.example.com
+
+[debian:vars]
+ansible_user=user
+ansible_password="password"
 ```
 
-### 3. Review and Customize Variables
+### 4. Configure Managed Hosts
+#### 4.1 Configure Linux Hosts
 
-Check the `roles/common/vars/main.yml` and adjust any default values such as paths and version numbers to suit your environment.
+Log in with your previously created ansible user 
+```bashh
+sudo su - ansible
+```
 
-### 4. Run the Playbook
+On your control node, generate an SSH key pair if you haven't already.
+```bash
+ssh-keygen -t rsa -b 4096
+```
+Press enter through all prompts to use default settings and no passphrase.
 
-Execute the playbook by specifying your inventory file and the main playbook file:
+Copy the Public Key to Managed Hosts:
+```bash
+ssh-copy-id user@managed-host-ip
+```
+Replace user with the remote user's username and managed-host-ip with the IP address of the managed host.
+
+Ensure that you can SSH into the managed host without entering a password
+```bash
+ssh user@managed-host-ip
+```
+
+Add the managed hosts to your Ansible inventory file with the necessary SSH parameters. Example inventory entry:
+
+```inventario.ini
+[debian]
+debianhost1 ansible_host=192.168.1.100 ansible_user=user ansible_ssh_private_key_file=~/.ssh/id_rsa
+```
+Test Ansible Communication
+```bash
+ansible debian -m ping
+```
+
+#### 4.2 Configure Windows Hosts
+
+Ensuring Remote Hosts are Configured for HTTPS and WinRM
+
+To manage Windows hosts with Ansible, it's crucial to set up WinRM (Windows Remote Management) and ensure proper HTTPS encryption.
+
+On each Windows host, WinRM must be enabled and configured. Execute this in PowerShell as an administrator
+```powershell
+Enable-PSRemoting -Force
+```
+
+Secure WinRM by enabling HTTPS, which requires a valid certificate. If a certificate is not already installed, create a self-signed certificate:
+```powershell
+New-SelfSignedCertificate -DnsName "win-host.example.com" -CertStoreLocation Cert:\LocalMachine\My
+```
+
+Configure WinRM to use this certificate:
+
+```powershell
+$cert = Get-ChildItem -Path cert:\LocalMachine\My\THUMBPRINT_HERE
+    winrm create winrm/config/Listener?Address=*+Transport=HTTPS '@{Hostname="win-host.example.com"; CertificateThumbprint="$cert.Thumbprint"}'
+```
+Modify group policies to allow WinRM access, configured via gpedit.msc under:
+
+
+    Computer Configuration -> Administrative Templates -> Windows Components -> Windows Remote Management (WinRM) -> WinRM Service
+
+Set the policy to allow remote server management through WinRM.
+
+Verify that you can connect from the Ansible control node to the Windows host using the pywinrm Python module
 
 ```bash
-ansible-playbook -i inventory/hosts site.yml
+python -m pywinrm -u "user" -p "password" -x "https://win-host.example.com:5986/wsman" "ipconfig"
+```
+
+### 5. Review and Customize Variables
+
+Check the `roles/linux/vars/main.yml` and `roles/windows/vars/main.yml` to adjust any default values such as paths and version numbers to suit your environment.
+
+### 6. Run the Playbook
+
+Execute the playbooks by specifying your inventory file and the main playbook files:
+
+```bash (for Linux hosts)
+ansible-playbook -i inventory/inventario playbooks/install_linux.yml
+```
+
+```bash (for Windows hosts
+ansible-playbook -i inventory/inventario playbooks/install_windows.yml
 ```
 
 ## Usage
@@ -73,6 +180,3 @@ Contributions to this repository are welcome. To contribute:
 
 If you encounter any issues while using these playbooks, please submit an issue on the GitHub issue tracker.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
