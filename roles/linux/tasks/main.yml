@@ -19,6 +19,7 @@
     name: 
       - libaio
       - unzip
+      - libnsl
     state: present
   when: ansible_os_family == "RedHat"
 
@@ -55,7 +56,7 @@
   ansible.builtin.blockinfile:
     path: /etc/profile.d/oracle.sh
     block: |
-      export ORACLE_HOME={{ oracle_install_path }}/{{ oracle_client_version_to_install }}
+      export ORACLE_HOME={{ oracle_install_path }}/{{ oracle_client_version_to_install }}/instantclient_{{ oracle_client_version_to_install }}
       export PATH=$ORACLE_HOME:$PATH
     create: yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
