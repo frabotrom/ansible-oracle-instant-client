@@ -150,18 +150,18 @@ python -m pywinrm -u "user" -p "password" -x "https://win-host.example.com:5986/
 
 ### 5. Review and Customize Variables
 
-Check the `roles/common/vars/main.yml` and adjust any default values such as paths and version numbers to suit your environment.
+Check the `roles/linux/vars/main.yml` and `roles/windows/vars/main.yml` to adjust any default values such as paths and version numbers to suit your environment.
 
 ### 6. Run the Playbook
 
 Execute the playbooks by specifying your inventory file and the main playbook files:
 
-```bash
-ansible-playbook -i inventory/inventario install_linux.yml
+```bash (for Linux hosts)
+ansible-playbook -i inventory/inventario playbooks/install_linux.yml
 ```
 
-```bash
-ansible-playbook -i inventory/inventario install_windows.yml
+```bash (for Windows hosts
+ansible-playbook -i inventory/inventario playbooks/install_windows.yml
 ```
 
 ## Usage
