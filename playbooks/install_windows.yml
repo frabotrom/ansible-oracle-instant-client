@@ -1,9 +1,9 @@
 - hosts: windows
   roles:
-    - windows
+    - roles/windows
   vars_prompt:
     - name: oracle_client_version_to_install
       prompt: "Ingrese la versión de Oracle Client a instalar (por ejemplo, 19_22, 21_1)"
       private: no
 
-# ansible-playbook install_windows.yml -i inventario.ini
+# ansible-playbook playbooks/install_windows.yml -i inventory/inventario.ini
