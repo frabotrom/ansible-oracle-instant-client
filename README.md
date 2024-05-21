@@ -132,20 +132,44 @@ New-SelfSignedCertificate -DnsName "win-host.example.com" -CertStoreLocation Cer
 Configure WinRM to use this certificate:
 
 ```powershell
-$cert = Get-ChildItem -Path cert:\LocalMachine\My\THUMBPRINT_HERE
-    winrm create winrm/config/Listener?Address=*+Transport=HTTPS '@{Hostname="win-host.example.com"; CertificateThumbprint="$cert.Thumbprint"}'
+$dnsName = "prueba.dominio.com"
+$cert = New-SelfSignedCertificate -DnsName $dnsName -CertStoreLocation cert:\LocalMachine\My -FriendlyName "WinRM SSL" -NotAfter (Get-Date).AddYears(1)
 ```
+
+```powershell
+$Get-ChildItem -Path cert:\LocalMachine\My | Select-Object Subject, Thumbprint
+```
+
+Copy the thumbprint of the created certificate and use it to configure WinRM to use HTTPS:
+
+```powershell
+$thumbprint = "certificate_thumbprint"
+winrm create winrm/config/Listener?Address=*+Transport=HTTPS '@{Hostname="prueba.dominio.com"; CertificateThumbprint=$thumbprint}'
+```
+
 Modify group policies to allow WinRM access, configured via gpedit.msc under:
-
-
     Computer Configuration -> Administrative Templates -> Windows Components -> Windows Remote Management (WinRM) -> WinRM Service
 
+```powershell
+winrm quickconfig -transport:https
+```
+
 Set the policy to allow remote server management through WinRM.
+
+```powershell
+New-NetFirewallRule -DisplayName "WinRM HTTPS" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow
+```
+Enumerate the WinRM listeners to verify that the HTTPS listener is configured correctly.
+
+```powershell
+winrm enumerate winrm/config/Listener
+```
 
 Verify that you can connect from the Ansible control node to the Windows host using the pywinrm Python module
 
 ```bash
-python -m pywinrm -u "user" -p "password" -x "https://win-host.example.com:5986/wsman" "ipconfig"
+pip install pywinrm
+python3 -m pywinrm -u "user" -p "password" -x "https://win-host.example.com:5986/wsman" "ipconfig"
 ```
 
 ### 5. Review and Customize Variables
