@@ -124,11 +124,6 @@ On each Windows host, WinRM must be enabled and configured. Execute this in Powe
 Enable-PSRemoting -Force
 ```
 
-Secure WinRM by enabling HTTPS, which requires a valid certificate. If a certificate is not already installed, create a self-signed certificate:
-```powershell
-New-SelfSignedCertificate -DnsName "win-host.example.com" -CertStoreLocation Cert:\LocalMachine\My
-```
-
 Configure WinRM to use this certificate:
 
 ```powershell
@@ -143,18 +138,14 @@ $Get-ChildItem -Path cert:\LocalMachine\My | Select-Object Subject, Thumbprint
 Copy the thumbprint of the created certificate and use it to configure WinRM to use HTTPS:
 
 ```powershell
-$thumbprint = "certificate_thumbprint"
-winrm create winrm/config/Listener?Address=*+Transport=HTTPS '@{Hostname="prueba.dominio.com"; CertificateThumbprint=$thumbprint}'
+winrm create winrm/config/Listener?Address=*+Transport=HTTPS '@{Hostname="prueba.dominio.com"; CertificateThumbprint="<Copied_Thumbprint_Here>"}'
 ```
 
 Modify group policies to allow WinRM access, configured via gpedit.msc under:
-    Computer Configuration -> Administrative Templates -> Windows Components -> Windows Remote Management (WinRM) -> WinRM Service
-
-```powershell
-winrm quickconfig -transport:https
+```gpedit.msc
+Computer Configuration -> Administrative Templates -> Windows Components -> Windows Remote Management (WinRM) -> WinRM Service -> Allow remote server management through WinRM
 ```
-
-Set the policy to allow remote server management through WinRM.
+Edit, select "Enabled" and enter asterisks (*) into the fields then click apply and ok
 
 ```powershell
 New-NetFirewallRule -DisplayName "WinRM HTTPS" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow
