@@ -115,11 +115,13 @@ ansible debian -m ping
 
 #### 4.2 Configure Windows Hosts
 
-Ensuring Remote Hosts are Configured for HTTPS and WinRM
+####REQUIREMENTS: WinRM
 
-To manage Windows hosts with Ansible, it's crucial to set up WinRM (Windows Remote Management) and ensure proper HTTPS encryption.
+It is necessary to have WinRM configured on the Windows host, either using HTTP or HTTPS. **You must have tested the connection from another node in advance**, as this program will not function if the WinRM connection has not been properly established and verified.
 
-On each Windows host, WinRM must be enabled and configured. Execute this in PowerShell as an administrator
+Below is an example configuration to set up a WinRM listener using HTTPS:
+
+Execute this in PowerShell as an administrator
 ```powershell
 Enable-PSRemoting -Force
 ```
@@ -132,7 +134,7 @@ $cert = New-SelfSignedCertificate -DnsName $dnsName -CertStoreLocation cert:\Loc
 ```
 
 ```powershell
-$Get-ChildItem -Path cert:\LocalMachine\My | Select-Object Subject, Thumbprint
+Get-ChildItem -Path cert:\LocalMachine\My | Select-Object Subject, Thumbprint
 ```
 
 Copy the thumbprint of the created certificate and use it to configure WinRM to use HTTPS:
@@ -148,6 +150,10 @@ Computer Configuration -> Administrative Templates -> Windows Components -> Wind
 Edit, select "Enabled" and enter asterisks (*) into the fields then click apply and ok
 
 ```powershell
+winrm quickconfig -transport:https
+```
+
+```powershell
 New-NetFirewallRule -DisplayName "WinRM HTTPS" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow
 ```
 Enumerate the WinRM listeners to verify that the HTTPS listener is configured correctly.
@@ -156,11 +162,9 @@ Enumerate the WinRM listeners to verify that the HTTPS listener is configured co
 winrm enumerate winrm/config/Listener
 ```
 
-Verify that you can connect from the Ansible control node to the Windows host using the pywinrm Python module
-
-```bash
-pip install pywinrm
-python3 -m pywinrm -u "user" -p "password" -x "https://win-host.example.com:5986/wsman" "ipconfig"
+Test the connection by running the ping command from the control node
+```Control node (linux)
+ansible winhost1 -i inventory/inventario.ini -m win_ping
 ```
 
 ### 5. Review and Customize Variables
