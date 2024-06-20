@@ -67,6 +67,10 @@ winhost2.example.com
 [windows:vars]
 ansible_user=user
 ansible_password="password"
+ansible_port=5986
+ansible_connection=winrm
+ansible_winrm_transport=basic
+ansible_winrm_server_cert_validation=ignore
 
 [debian]
 debianhost1.example.com
@@ -75,6 +79,7 @@ debianhost2.example.com
 [debian:vars]
 ansible_user=user
 ansible_password="password"
+ansible_python_interpreter=/usr/bin/python3
 ```
 
 ### 4. Configure Managed Hosts
