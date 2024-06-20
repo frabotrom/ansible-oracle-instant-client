@@ -115,7 +115,7 @@ ansible debian -m ping
 
 #### 4.2 Configure Windows Hosts
 
-####REQUIREMENTS: WinRM
+#### REQUIREMENTS: WinRM
 
 It is necessary to have WinRM configured on the Windows host, either using HTTP or HTTPS. **You must have tested the connection from another node in advance**, as this program will not function if the WinRM connection has not been properly established and verified.
 
